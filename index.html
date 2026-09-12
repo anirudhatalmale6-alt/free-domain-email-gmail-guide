@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Free Lifetime Domain Email in Gmail</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  body { font-family: "DejaVu Sans", Arial, Helvetica, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1c2430; }
+  h1 { font-size: 19pt; margin: 0 0 2px; color: #0f2a4a; }
+  .sub { color: #5a6877; font-size: 9.5pt; margin-bottom: 14px; }
+  h2 { page-break-after: avoid; font-size: 12.6pt; margin: 20px 0 6px; color: #0f2a4a; border-bottom: 2px solid #d7e1ec; padding-bottom: 3px; }
+  h3 { page-break-after: avoid; font-size: 10.8pt; margin: 13px 0 4px; color: #14324f; }
+  p { margin: 5px 0; }
+  ol, ul { margin: 5px 0 5px 18px; padding: 0; }
+  li { margin: 3px 0; }
+  code { font-family: "DejaVu Sans Mono", Consolas, monospace; background: #eef3f8; padding: 1px 3px; border-radius: 2px; font-size: 9pt; word-break: break-all; }
+  table { page-break-inside: avoid; border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 9pt; }
+  th { background: #0f2a4a; color: #fff; text-align: left; padding: 5px 6px; font-weight: 600; }
+  td { border: 1px solid #cfd9e4; padding: 5px 6px; vertical-align: top; word-break: break-word; }
+  tr:nth-child(even) td { background: #f6f9fc; }
+  .note { background: #fff8e6; border-left: 3px solid #e8a900; padding: 7px 10px; margin: 9px 0; font-size: 9.4pt; }
+  .ok { background: #edf8f0; border-left: 3px solid #2e9e5b; padding: 7px 10px; margin: 9px 0; font-size: 9.4pt; }
+  .warn { background: #fdeeee; border-left: 3px solid #cc3b3b; padding: 7px 10px; margin: 9px 0; font-size: 9.4pt; }
+  .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: #f3f6fa; border: 1px solid #dde5ee; padding: 7px 9px; white-space: pre-wrap; word-break: break-all; }
+  .chk td:first-child { width: 22px; text-align: center; font-size: 11pt; }
+  footer { margin-top: 18px; border-top: 1px solid #d7e1ec; padding-top: 6px; color: #6b7885; font-size: 8.6pt; }
+  .pbreak { page-break-before: always; }
+</style></head><body>
+
+<h1>Professional Email on Your Own Domain &mdash; Free, Forever, Inside Gmail</h1>
+<div class="sub">Setup guide for a Namecheap domain &bull; send and receive from info@ / hello@ / sales@ without leaving Gmail &bull; prepared by Anirudha Talmale</div>
+
+<h2>1. Which services we use, and why</h2>
+<p>Two free services, each doing the half it does best. Neither asks for a card.</p>
+<table>
+  <tr><th style="width:17%">Job</th><th style="width:20%">Service</th><th>Why this one</th></tr>
+  <tr><td>Receiving<br>(incoming mail)</td><td>ImprovMX<br>(free plan)</td><td>Catches mail sent to your domain and forwards it straight into your existing Gmail inbox. Free plan: 1 domain, 25 addresses, 500 forwarded mails/day. It uses SRS, so forwarded mail still passes sender checks at Gmail.</td></tr>
+  <tr><td>Sending<br>(outgoing mail)</td><td>Brevo SMTP<br>(free plan)</td><td>Gmail needs a real SMTP server to send as your domain. Brevo's free plan gives 300 mails/day through <code>smtp-relay.brevo.com</code> and &mdash; the important part &mdash; it signs with DKIM using <em>your</em> domain, so SPF/DKIM/DMARC all line up.</td></tr>
+</table>
+
+<h3>Why not the other routes</h3>
+<ul>
+  <li><strong>Zoho Mail free plan</strong> &mdash; real mailboxes, but webmail/app access only. IMAP, POP and SMTP are paid-only, so it cannot be driven from inside Gmail. Ruled out by your "never leave Gmail" requirement.</li>
+  <li><strong>Gmail's "Send through Gmail" option</strong> (no SMTP server) &mdash; works, costs nothing, but mail leaves through Google's servers with a <code>gmail.com</code> return path. Recipients see "via gmail.com" and your domain's SPF/DKIM do not align, so DMARC reports a fail. Your brief asked for proper authentication, so we use real SMTP instead.</li>
+  <li><strong>Yandex 360</strong> &mdash; free domain mail is no longer offered to new sign-ups outside Russia and needs phone verification. Not dependable.</li>
+</ul>
+
+<div class="note"><strong>Honest note on "forever":</strong> both free tiers are long-standing and advertised as free, but no company can be contractually bound to that. Section 9 lists the drop-in replacements (Cloudflare Email Routing, Zoho) and what you would change if either provider ever alters its terms. You would never lose the addresses themselves &mdash; they live on your domain, not on their platform.</div>
+
+<h2>2. Before you start</h2>
+<ul>
+  <li>Decide your addresses now, 2&ndash;5 of them &mdash; e.g. <code>info@</code>, <code>hello@</code>, <code>sales@</code>.</li>
+  <li>Have your Namecheap login ready (<em>Domain List &rarr; Manage &rarr; Advanced DNS</em>).</li>
+  <li>Have the Gmail account open that everything will land in.</li>
+  <li>Total time: about 30 minutes of clicking, plus DNS propagation (usually 10&ndash;60 minutes).</li>
+</ul>
+<div class="warn"><strong>One-time warning:</strong> adding the MX records below moves <em>all</em> mail for your domain to ImprovMX. If the domain currently receives mail anywhere else (cPanel mailbox, old host, Namecheap Private Email), that mailbox stops receiving the moment the new MX records go live. Tell me if that applies and we will plan the cut-over.</div>
+
+<h2 class="pbreak">3. Step 1 &mdash; Create the forwarding addresses (ImprovMX)</h2>
+<ol>
+  <li>Go to <code>improvmx.com</code>. On the home page, type your domain and your Gmail address into the two boxes and click to create the free account (or use <em>Sign up</em> &rarr; free plan).</li>
+  <li>Verify your Gmail address from the confirmation mail ImprovMX sends you.</li>
+  <li>In the dashboard, open your domain. Add one alias per address you want:
+    <ul>
+      <li><code>info</code> &rarr; <code>yourname@gmail.com</code></li>
+      <li><code>hello</code> &rarr; <code>yourname@gmail.com</code></li>
+      <li><code>sales</code> &rarr; <code>yourname@gmail.com</code></li>
+    </ul>
+  </li>
+  <li>Optional but recommended: leave the catch-all alias <code>*</code> switched <strong>off</strong>. A catch-all accepts mail to every possible name on your domain and attracts spam.</li>
+  <li>ImprovMX will show your domain as "pending" / red until the DNS records in Step 2 exist. That is expected.</li>
+</ol>
+
+<h2>4. Step 2 &mdash; DNS records in Namecheap</h2>
+<p>Namecheap: <em>Domain List &rarr; Manage</em> (next to your domain) <em>&rarr; Advanced DNS</em>.</p>
+
+<h3>4a. Switch Mail Settings to Custom MX first</h3>
+<div class="warn">On the <strong>Advanced DNS</strong> page, scroll to <strong>Mail Settings</strong> and set it to <strong>Custom MX</strong>. If it is left on "Email Forwarding" or "Private Email", Namecheap overrides whatever MX records you type and nothing will work. Delete any MX rows that were already there.</div>
+
+<h3>4b. Add these records</h3>
+<p>In Namecheap the domain is appended automatically &mdash; type <code>@</code> for the root and <code>mail._domainkey</code> (not the full hostname) for the DKIM row.</p>
+<table>
+  <tr><th style="width:9%">Type</th><th style="width:20%">Host</th><th>Value</th><th style="width:12%">Priority</th><th style="width:9%">TTL</th></tr>
+  <tr><td>MX</td><td>@</td><td><code>mx1.improvmx.com</code></td><td>10</td><td>Automatic</td></tr>
+  <tr><td>MX</td><td>@</td><td><code>mx2.improvmx.com</code></td><td>20</td><td>Automatic</td></tr>
+  <tr><td>TXT</td><td>@</td><td><code>v=spf1 include:spf.improvmx.com include:spf.brevo.com ~all</code></td><td>&mdash;</td><td>Automatic</td></tr>
+  <tr><td>TXT</td><td>@</td><td><code>brevo-code:&lt;the code Brevo shows you in Step 3&gt;</code></td><td>&mdash;</td><td>Automatic</td></tr>
+  <tr><td>TXT</td><td>mail._domainkey</td><td><code>&lt;the DKIM value Brevo shows you in Step 3&gt;</code></td><td>&mdash;</td><td>Automatic</td></tr>
+  <tr><td>TXT</td><td>_dmarc</td><td><code>v=DMARC1; p=none; rua=mailto:yourname@gmail.com; fo=1</code></td><td>&mdash;</td><td>Automatic</td></tr>
+</table>
+<div class="note">
+<strong>Rules that bite people here:</strong>
+<ul style="margin-bottom:0">
+  <li>You may have <strong>only one</strong> SPF record (one TXT starting <code>v=spf1</code>). If one already exists, merge the two <code>include:</code> parts into it &mdash; do not add a second.</li>
+  <li>Multiple <em>other</em> TXT records on <code>@</code> are perfectly fine (the SPF one and the brevo-code one can coexist).</li>
+  <li>Do the MX + SPF + DMARC rows now; come back and add the brevo-code and DKIM rows after Step 3, when Brevo has generated them. Brevo may show the DKIM as a CNAME pair (<code>brevo1._domainkey</code> / <code>brevo2._domainkey</code>) instead of a TXT &mdash; if so, add exactly what it shows.</li>
+</ul>
+</div>
+<p>Back in ImprovMX, click <em>Check again</em>. Once it turns green, incoming mail is already working &mdash; test it right away by mailing <code>info@yourdomain.com</code> from your phone.</p>
+
+<h2>5. Step 3 &mdash; Sending credentials (Brevo)</h2>
+<ol>
+  <li>Sign up free at <code>brevo.com</code> and confirm your account (it asks for a website/company name &mdash; any answer is fine).</li>
+  <li>Go to <strong>Senders, Domains &amp; Dedicated IPs &rarr; Domains &rarr; Add a domain</strong>. Enter <code>yourdomain.com</code> and choose the manual / "I'll do it myself" option rather than letting it log into your registrar.</li>
+  <li>Brevo now shows you the <strong>Brevo code</strong> and the <strong>DKIM</strong> record. Copy both into Namecheap exactly as shown (rows 4 and 5 of the table above). Copy/paste &mdash; never retype a DKIM key.</li>
+  <li>Wait a few minutes, then click <strong>Authenticate this email domain</strong> in Brevo. You want green ticks on Brevo code and DKIM.</li>
+  <li>Go to <strong>Senders</strong> and add each address (<code>info@yourdomain.com</code> etc.) as a sender. With the domain authenticated these are accepted without separate per-address verification.</li>
+  <li>Go to <strong>SMTP &amp; API &rarr; SMTP</strong>. Note the three values &mdash; server <code>smtp-relay.brevo.com</code>, port <code>587</code>, login (your Brevo account email) &mdash; and click to generate a new <strong>SMTP key</strong>. Copy it now; it is shown once. That key is the password Gmail will use.</li>
+</ol>
+<div class="note">Brevo free allows 300 outgoing mails per day, shared across everything you send. For business correspondence that is a very high ceiling &mdash; but it is a ceiling, so do not use these addresses for bulk mailing.</div>
+
+<h2>6. Step 4 &mdash; Wire it into Gmail</h2>
+<h3>6a. Sending ("Send mail as")</h3>
+<ol>
+  <li>Gmail &rarr; gear icon &rarr; <strong>See all settings</strong> &rarr; <strong>Accounts and Import</strong> tab.</li>
+  <li>Under <em>Send mail as</em>, click <strong>Add another email address</strong>.</li>
+  <li><strong>Name:</strong> what recipients should see (e.g. your name, or your business name).<br>
+      <strong>Email address:</strong> <code>info@yourdomain.com</code>.<br>
+      Leave <strong>Treat as an alias</strong> ticked. Click <em>Next Step</em>.</li>
+  <li>If Gmail offers a choice, pick <strong>Send through yourdomain.com SMTP servers</strong>, not "Send through Gmail". Then fill in:
+    <div class="mono">SMTP Server : smtp-relay.brevo.com
+Port        : 587
+Username    : your Brevo login e-mail
+Password    : the Brevo SMTP key from Step 3.6
+Security    : Secured connection using TLS  (recommended)</div>
+  </li>
+  <li>Click <strong>Add Account</strong>. Gmail mails a verification code to <code>info@yourdomain.com</code> &mdash; which ImprovMX forwards into this same inbox, usually within seconds. Paste the code in, or click the link in it.</li>
+  <li>Repeat 2&ndash;6 for each address. The same Brevo login and SMTP key are reused every time.</li>
+</ol>
+
+<h3>6b. Replying from the right address</h3>
+<p>Still in <em>Accounts and Import</em>:</p>
+<ul>
+  <li>Set <strong>When replying to a message:</strong> to <em>Reply from the same address the message was sent to</em>. This is what makes a mail that arrived at <code>sales@</code> automatically reply as <code>sales@</code> &mdash; without it, everything goes out from your personal Gmail address.</li>
+  <li>Under <em>Send mail as</em>, use <em>make default</em> if you want a domain address to be the default for brand-new mails.</li>
+</ul>
+
+<h3>6c. Keeping the inbox tidy (optional)</h3>
+<p>Gmail &rarr; Settings &rarr; <strong>Filters and Blocked Addresses</strong> &rarr; <em>Create a new filter</em>. In <strong>To:</strong> put <code>info@yourdomain.com</code>, then <em>Create filter</em> &rarr; <strong>Apply the label</strong> &rarr; new label "Info". One filter per address and each one gets its own colour-coded label in the sidebar.</p>
+
+<h2>7. Final checklist &mdash; proving it all works</h2>
+<p>Work down this list. Everything here is free and takes about ten minutes.</p>
+<table class="chk">
+  <tr><th style="width:22px">&#10003;</th><th>Check</th><th style="width:44%">How, and what you should see</th></tr>
+  <tr><td>&#9744;</td><td>MX records live</td><td>At <code>mxtoolbox.com/SuperTool.aspx</code> run <em>MX Lookup</em> on your domain. Expect <code>mx1.improvmx.com</code> (10) and <code>mx2.improvmx.com</code> (20) and nothing else. Command line: <code>nslookup -type=mx yourdomain.com</code></td></tr>
+  <tr><td>&#9744;</td><td>SPF valid</td><td>MXToolbox <em>SPF Record Lookup</em>. Exactly one record; both includes present; no "more than one SPF record" error.</td></tr>
+  <tr><td>&#9744;</td><td>DKIM published</td><td>MXToolbox <em>DKIM Lookup</em>, selector <code>mail</code>. Or <code>nslookup -type=txt mail._domainkey.yourdomain.com</code>. And: Brevo's domain page shows green ticks.</td></tr>
+  <tr><td>&#9744;</td><td>DMARC published</td><td><code>nslookup -type=txt _dmarc.yourdomain.com</code> returns your <code>v=DMARC1; p=none; ...</code> record.</td></tr>
+  <tr><td>&#9744;</td><td>Receiving works</td><td>From an unrelated account (phone, a friend, another webmail) mail each address in turn. Each one lands in your Gmail inbox. Check the ImprovMX logs if one does not.</td></tr>
+  <tr><td>&#9744;</td><td>Sending works</td><td>Compose in Gmail, switch the <em>From</em> to <code>info@yourdomain.com</code>, send to another mailbox you own. It arrives, shows your domain address as the sender, and there is <strong>no</strong> "via gmail.com" or "on behalf of" next to the name.</td></tr>
+  <tr><td>&#9744;</td><td>Round trip</td><td>Reply to that mail from the other mailbox. The reply comes back to your Gmail, and hitting Reply sends it out as the domain address again.</td></tr>
+  <tr><td>&#9744;</td><td>Authentication passes</td><td>Send one mail from <code>info@</code> to the address shown at <code>mail-tester.com</code> (free, 3/day). Aim for 9&ndash;10/10 with SPF, DKIM and DMARC all green and DKIM signed by <em>your</em> domain.</td></tr>
+  <tr><td>&#9744;</td><td>Headers confirm it</td><td>In Gmail, open a received test mail &rarr; three dots &rarr; <em>Show original</em>. Look for <code>SPF: PASS</code>, <code>DKIM: 'PASS' with domain yourdomain.com</code>, <code>DMARC: 'PASS'</code>.</td></tr>
+  <tr><td>&#9744;</td><td>Not in spam</td><td>Send a test to a Gmail, an Outlook/Hotmail and a Yahoo address. All three should reach the inbox, not the junk folder.</td></tr>
+</table>
+<div class="ok"><strong>The one check that matters most</strong> is the Gmail "Show original" line reading <code>DKIM: 'PASS' with domain yourdomain.com</code>. That single line is the difference between this setup and the free shortcuts &mdash; it proves your domain really authorised the message, which is what keeps you out of spam folders long-term.</div>
+
+<h2>8. If something misbehaves</h2>
+<table>
+  <tr><th style="width:34%">Symptom</th><th>Cause and fix</th></tr>
+  <tr><td>ImprovMX stays red / "MX not found"</td><td>Namecheap Mail Settings is not on <strong>Custom MX</strong>, or an old MX row is still present. Fix both, then wait 30 minutes &mdash; Namecheap's default TTL means old values can linger.</td></tr>
+  <tr><td>Incoming mail never arrives</td><td>Check the ImprovMX dashboard logs: they tell you whether the mail reached them (a DNS problem) or was rejected after (a forwarding problem). Also check Gmail Spam.</td></tr>
+  <tr><td>Gmail: "Authentication failed. Please check your username/password"</td><td>The SMTP key was mistyped, or you used your Brevo <em>account password</em> instead of the generated SMTP key. Generate a fresh key and paste it.</td></tr>
+  <tr><td>Gmail: "TLS Negotiation failed" / connection refused</td><td>Wrong port. Use 587 with TLS. If your network blocks 587, Brevo also accepts 2525.</td></tr>
+  <tr><td>Gmail verification code never arrives</td><td>Incoming side is not finished. Confirm Step 2 is green in ImprovMX first, then retry &mdash; Gmail lets you resend the code.</td></tr>
+  <tr><td>Recipients see "via brevo" or "on behalf of"</td><td>DKIM is not authenticated yet in Brevo. Finish Step 3.4 and the label disappears.</td></tr>
+  <tr><td>Brevo blocks sending</td><td>The sender address was not added under <em>Senders</em>, or the 300/day cap was hit. Both are visible on the Brevo dashboard.</td></tr>
+  <tr><td>Everything looks right but mail lands in spam</td><td>A brand-new domain has no sending reputation. Keep volumes low and natural for the first week or two; it settles. Do not send mass mail from these addresses.</td></tr>
+</table>
+
+<h2>9. Long-term: keeping it free</h2>
+<ul>
+  <li><strong>Once a year</strong>, log into ImprovMX and Brevo. Both can deactivate dormant free accounts; a single login resets that.</li>
+  <li><strong>Renew the domain.</strong> The only bill in this whole setup is your Namecheap renewal. If the domain lapses, the addresses go with it.</li>
+  <li><strong>Keep DMARC at <code>p=none</code></strong> for the first few weeks and read the reports that arrive at your Gmail. Once you see nothing but passes, tighten it to <code>p=quarantine</code>.</li>
+  <li><strong>If ImprovMX ever changes its free tier:</strong> swap in <em>Cloudflare Email Routing</em> &mdash; free, unlimited addresses, no daily cap. It needs your domain's nameservers pointed at Cloudflare (free, registration stays at Namecheap); you then replace the two MX rows with Cloudflare's three. Nothing else in this guide changes.</li>
+  <li><strong>If Brevo ever changes its free tier:</strong> alternatives with free SMTP tiers include Mailjet (200/day) and SMTP2GO (1,000/month). You would only re-do Step 3 and the password field in Step 4a.</li>
+  <li><strong>If you later want true mailboxes</strong> that exist independently of your Gmail, Zoho's free plan gives five of them &mdash; webmail and mobile app only, so it is a companion to this setup, not a replacement.</li>
+</ul>
+
+<footer>Prepared for project 40707214 &mdash; Lifetime Free Domain Emails Setup. Replace <code>yourdomain.com</code> and <code>yourname@gmail.com</code> throughout with your real values. Send me your domain name and I will return this same table pre-filled, and I will stay on hand through propagation and the checklist.</footer>
+</body></html>
